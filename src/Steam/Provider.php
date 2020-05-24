@@ -60,6 +60,11 @@ class Provider extends AbstractProvider
     /**
      * @var string
      */
+    const OPENID_ERROR = 'openid_error';
+
+    /**
+     * @var string
+     */
     const OPENID_NS = 'http://specs.openid.net/auth/2.0';
 
     /**
@@ -81,7 +86,8 @@ class Provider extends AbstractProvider
     public function user()
     {
         if (!$this->validate()) {
-            throw new OpenIDValidationException('Failed to validate openID login');
+            $error = $this->getParams()['openid.error'] ?? 'unknown error';
+            throw new OpenIDValidationException('Failed to validate OpenID login: ' . ucfirst($error));
         }
 
         return $this->mapUserToObject($this->getUserByToken($this->steamId));
@@ -221,6 +227,7 @@ class Provider extends AbstractProvider
             'openid.assoc_handle' => $this->request->get(self::OPENID_ASSOC_HANDLE),
             'openid.signed' => $this->request->get(self::OPENID_SIGNED),
             'openid.sig' => $this->request->get(self::OPENID_SIG),
+            'openid.error' => $this->request->get(self::OPENID_ERROR),
             'openid.ns' => self::OPENID_NS,
             'openid.mode' => 'check_authentication',
         ];
