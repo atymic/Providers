@@ -107,8 +107,7 @@ foreach ($changedPackages as $package) {
 
     echo sprintf("[release] %s (%s/%s)\n", $package, $org, $repo);
 
-    $response = $http->get(sprintf('/repos/%s/%s/releases/latest', $org, $repo));
-    $latest = $response->successful() ? $response->json('tag_name') : null;
+    $latest = fetchLatestVersion($http, $org, $repo, $parser);
 
     if ($bump === 'new-provider' || ! $latest) {
         $newVersion = '1.0.0';
@@ -126,6 +125,7 @@ foreach ($changedPackages as $package) {
         'target_commitish' => 'master',
         'name' => $newVersion,
         'body' => $body,
+        'make_latest' => 'true',
     ]);
 
     if ($response->failed()) {
@@ -159,6 +159,36 @@ function generateReleaseBody(string $newVersion, ?string $previousVersion, ?arra
     }
 
     return implode("\n", $lines);
+}
+
+function fetchLatestVersion($http, string $org, string $repo, VersionParser $parser): ?string
+{
+    $response = $http->get(sprintf('/repos/%s/%s/releases', $org, $repo), ['per_page' => 100]);
+
+    if ($response->failed() || empty($response->json())) {
+        return null;
+    }
+
+    $versions = [];
+    foreach ($response->json() as $release) {
+        $tag = $release['tag_name'] ?? null;
+        if (! $tag) {
+            continue;
+        }
+        try {
+            $versions[$parser->normalize(ltrim($tag, 'v'))] = $tag;
+        } catch (\Throwable) {
+            // Skip tags that don't parse as semver
+        }
+    }
+
+    if (empty($versions)) {
+        return null;
+    }
+
+    uksort($versions, 'version_compare');
+
+    return end($versions);
 }
 
 function bumpVersion(string $version, string $type, VersionParser $parser): string
