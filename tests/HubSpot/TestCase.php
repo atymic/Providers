@@ -16,8 +16,6 @@ use SocialiteProviders\Tests\TestCase as BaseTestCase;
 abstract class TestCase extends BaseTestCase
 {
     /**
-     * Requests recorded by the history middleware.
-     *
      * @var array<int, array{request: RequestInterface}>
      */
     protected array $httpHistory = [];
@@ -28,8 +26,6 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Build the provider with a recording HTTP client.
-     *
      * @param  array<int, Response>  $responses
      */
     protected function makeRecordingProvider(array $responses, ?Request $request = null): AbstractProvider
@@ -63,8 +59,6 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * The form-encoded body of the last recorded request.
-     *
      * @return array<string, string>
      */
     protected function lastRequestBody(): array

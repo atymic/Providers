@@ -83,10 +83,6 @@ class EndpointTest extends TestCase
         $this->assertSame(static::CLIENT_SECRET, $body['client_secret']);
     }
 
-    /**
-     * The v1 endpoint this replaced put the token in the URL path, leaking it
-     * into access logs and browser history.
-     */
     public function test_the_access_token_never_appears_in_a_url(): void
     {
         $provider = $this->makeRecordingProvider([

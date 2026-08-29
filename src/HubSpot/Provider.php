@@ -28,9 +28,6 @@ class Provider extends AbstractProvider
 
     /**
      * {@inheritdoc}
-     *
-     * Introspection takes the token in the request body. The v1 endpoint it
-     * replaces put it in the URL path, which leaked it into access logs.
      */
     protected function getUserByToken($token)
     {
@@ -49,8 +46,7 @@ class Provider extends AbstractProvider
         $user = json_decode((string) $response->getBody(), true);
 
         // Introspection answers 200 {"active": false} for an expired or revoked
-        // token, where the v1 endpoint returned a 4xx. Without this the caller
-        // would get a User with a null id and email instead of a failure.
+        // token rather than a 4xx, so nothing else here would fail.
         if (! ($user['active'] ?? false)) {
             throw new InvalidArgumentException('The HubSpot access token is expired or revoked.');
         }
