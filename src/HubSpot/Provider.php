@@ -7,7 +7,7 @@ use SocialiteProviders\Manager\OAuth2\AbstractProvider;
 use SocialiteProviders\Manager\OAuth2\User;
 
 /**
- * @see https://legacydocs.hubspot.com/docs/methods/oauth2/oauth2-overview
+ * @see https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens
  */
 class Provider extends AbstractProvider
 {
@@ -22,15 +22,28 @@ class Provider extends AbstractProvider
 
     protected function getTokenUrl(): string
     {
-        return 'https://api.hubapi.com/oauth/v1/token';
+        return 'https://api.hubapi.com/oauth/2026-03/token';
     }
 
     /**
      * {@inheritdoc}
+     *
+     * Introspection takes the token in the request body. The v1 endpoint it
+     * replaces put it in the URL path, which leaked it into access logs.
      */
     protected function getUserByToken($token)
     {
-        $response = $this->getHttpClient()->get('https://api.hubspot.com/oauth/v1/access-tokens/'.$token);
+        $response = $this->getHttpClient()->post('https://api.hubapi.com/oauth/2026-03/token/introspect', [
+            RequestOptions::HEADERS => [
+                'Accept' => 'application/json',
+            ],
+            RequestOptions::FORM_PARAMS => [
+                'client_id'       => $this->clientId,
+                'client_secret'   => $this->clientSecret,
+                'token'           => $token,
+                'token_type_hint' => 'access_token',
+            ],
+        ]);
 
         return json_decode((string) $response->getBody(), true);
     }
@@ -52,7 +65,7 @@ class Provider extends AbstractProvider
     /**
      * Acquire a new access token using the refresh token.
      *
-     * @see https://developers.hubspot.com/docs/api/oauth-quickstart-guide#refreshing_tokens
+     * @see https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens
      *
      * @param  string  $refreshToken
      * @return array
