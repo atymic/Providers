@@ -3,6 +3,7 @@
 namespace SocialiteProviders\HubSpot;
 
 use GuzzleHttp\RequestOptions;
+use InvalidArgumentException;
 use SocialiteProviders\Manager\OAuth2\AbstractProvider;
 use SocialiteProviders\Manager\OAuth2\User;
 
@@ -45,7 +46,16 @@ class Provider extends AbstractProvider
             ],
         ]);
 
-        return json_decode((string) $response->getBody(), true);
+        $user = json_decode((string) $response->getBody(), true);
+
+        // Introspection answers 200 {"active": false} for an expired or revoked
+        // token, where the v1 endpoint returned a 4xx. Without this the caller
+        // would get a User with a null id and email instead of a failure.
+        if (! ($user['active'] ?? false)) {
+            throw new InvalidArgumentException('The HubSpot access token is expired or revoked.');
+        }
+
+        return $user;
     }
 
     /**

@@ -102,6 +102,21 @@ class EndpointTest extends TestCase
         $this->assertStringNotContainsString('super-secret-token', $this->lastRequestUrl());
     }
 
+    /**
+     * Introspection answers 200 {"active": false} rather than a 4xx, so an
+     * expired or revoked token would otherwise map to a null id and email.
+     */
+    public function test_an_inactive_token_is_rejected(): void
+    {
+        $provider = $this->makeRecordingProvider([
+            $this->jsonResponse(['active' => false]),
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $provider->userFromToken('revoked-token');
+    }
+
     public function test_authorize_url_is_unchanged(): void
     {
         $provider = $this->makeProvider();
