@@ -1,0 +1,17 @@
+{
+    "active": true,
+    "token": "access-token",
+    "hub_id": 987654,
+    "user_id": 123456,
+    "client_id": "client-id",
+    "app_id": 1234,
+    "user": "user@example.com",
+    "hub_domain": "example.hubspot.com",
+    "scopes": [
+        "oauth",
+        "crm.objects.contacts.read"
+    ],
+    "expires_in": 1800,
+    "token_use": "access",
+    "token_type": "Bearer"
+}
