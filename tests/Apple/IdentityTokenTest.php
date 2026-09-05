@@ -35,6 +35,19 @@ class IdentityTokenTest extends TestCase
         );
     }
 
+    public function test_it_decodes_claims_whose_payload_uses_base64url_characters(): void
+    {
+        // A nonce chosen so the encoded payload contains - and _, which plain
+        // base64_decode does not understand.
+        $user = $this->makeAppleProvider()->userByIdentityToken(
+            $this->identityToken(['nonce' => 'aa?bb>>cc']),
+            'aa?bb>>cc'
+        );
+
+        $this->assertSame('apple-user-id', $user->getId());
+        $this->assertSame('user@example.com', $user->getEmail());
+    }
+
     public function test_it_rejects_a_token_from_another_issuer(): void
     {
         $this->expectException(InvalidStateException::class);

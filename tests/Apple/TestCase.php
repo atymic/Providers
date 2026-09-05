@@ -10,7 +10,6 @@ use Illuminate\Cache\ArrayStore;
 use Illuminate\Cache\Repository;
 use Illuminate\Container\Container;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Facade;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
 use Lcobucci\JWT\Encoding\JoseEncoder;
@@ -87,11 +86,11 @@ abstract class TestCase extends BaseTestCase
     /**
      * A Guzzle client that replays Apple's JWKS endpoint.
      */
-    protected function makeJwkClient(?Response $response = null): Client
+    protected function makeJwkClient(): Client
     {
         return new Client([
             'handler' => HandlerStack::create(new MockHandler([
-                $response ?? new Response(200, ['Content-Type' => 'application/json'], json_encode($this->jwks)),
+                new Response(200, ['Content-Type' => 'application/json'], json_encode($this->jwks)),
             ])),
         ]);
     }
@@ -150,11 +149,6 @@ abstract class TestCase extends BaseTestCase
         // Re-signing is unnecessary: aud is checked alongside the signature, and
         // asserting on the audience violation would hide a signature failure.
         return $headers.'.'.$this->base64UrlEncode(json_encode($decoded)).'.'.$signature;
-    }
-
-    protected function flushJwkCache(): void
-    {
-        Cache::forget('socialite:Apple-JWKSet');
     }
 
     private function makeKeyPair(): void

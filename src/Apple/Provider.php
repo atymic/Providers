@@ -121,7 +121,9 @@ class Provider extends AbstractProvider
      */
     protected function parseTokenClaims($token)
     {
-        return json_decode(base64_decode(explode('.', $token)[1]), true);
+        $payload = explode('.', $token)[1];
+
+        return json_decode(base64_decode(strtr($payload, '-_', '+/')), true);
     }
 
     protected function getClientSecret()
